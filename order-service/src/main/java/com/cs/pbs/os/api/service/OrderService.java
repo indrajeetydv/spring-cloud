@@ -3,12 +3,10 @@ package com.cs.pbs.os.api.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
+import com.cs.pbs.os.api.client.PaymentClient;
 import com.cs.pbs.os.api.common.Payment;
 import com.cs.pbs.os.api.common.TransactionRequest;
 import com.cs.pbs.os.api.common.TransactionResponse;
@@ -24,12 +22,19 @@ public class OrderService {
 	@Autowired
 	private OrderRepository repository;
 	
-	@Autowired
-    @Lazy
-    private RestTemplate template;
+	/*
+	 * @Autowired
+	 * 
+	 * @Lazy private RestTemplate template;
+	 */
 	
-	@Value("${microservice.payment-service.endpoints.endpoint.uri}")
-    private String ENDPOINT_URL;
+	/*
+	 * @Value("${microservice.payment-service.endpoints.endpoint.uri}") private
+	 * String ENDPOINT_URL;
+	 */
+	
+	@Autowired
+	private PaymentClient client;
 	
 	/*
 	 * public Order saveOrder(Order order) { return repository.save(order); }
@@ -45,8 +50,9 @@ public class OrderService {
 	        logger.info("Order-Service Request : "+new ObjectMapper().writeValueAsString(request));
 	        //Payment paymentResponse = template.postForObject("http://localhost:9191/payment/doPayment", payment, Payment.class);
 	        //Payment paymentResponse = template.postForObject("http://PAYMENT-SERVICE/payment/doPayment", payment, Payment.class);
-	        Payment paymentResponse = template.postForObject(ENDPOINT_URL, payment, Payment.class);
-
+	        //Payment paymentResponse = template.postForObject(ENDPOINT_URL, payment, Payment.class);
+	        //using feign client
+	        Payment paymentResponse = client.doPayment(payment);
 	        response = paymentResponse.getPaymentStatus().equals("success") ? "payment processing successful and order placed" : "there is a failure in payment api , order added to cart";
 	        logger.info("Order Service getting Response from Payment-Service : "+new ObjectMapper().writeValueAsString(response));
 	        repository.save(order);
