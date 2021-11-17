@@ -1,12 +1,14 @@
-server:
-  port: 9192
- 
+#server:
+#  port: 9192
+
+server:  port: 0 
  
 spring:  h2:    console:      enabled: true
   datasource:    url: jdbc:h2:mem:testdb
   application:    name: ORDER-SERVICE
   zipkin:
     base-url: http://localhost:9411/
+    
 #eureka:
 #  client:
 #    register-with-eureka: true
@@ -15,3 +17,60 @@ spring:  h2:    console:      enabled: true
 #      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
 #  instance:
 #   preferIpAddress: true
+#eureka:
+#  client:
+#    register-with-eureka: true
+#    fetch-registry: true
+#    service-url:
+#      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
+#  instance:
+#    instance-id: ${spring.application.name}:${random.uuid}
+    
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      slidingWindowSize: 10
+      minimumNumberOfCalls: 5
+      permittedNumberOfCallsInHalfOpenState: 3
+      automaticTransitionFromOpenToHalfOpenEnabled: true
+      waitDurationInOpenState: 2s
+      failureRateThreshold: 5
+      eventConsumerBufferSize: 10
+      slowCallDurationThreshold: 200ms
+      slowCallRateThreshold: 30
+      recordExceptions:
+        - org.springframework.web.client.HttpServerErrorException
+        - java.io.IOException
+      ignoreExceptions:
+        - java.lang.IllegalStateException
+    shared:
+      slidingWindowSize: 100
+      permittedNumberOfCallsInHalfOpenState: 30
+      waitDurationInOpenState: 1s
+      failureRateThreshold: 50
+      eventConsumerBufferSize: 10
+      ignoreExceptions:
+        - java.lang.IllegalStateException
+  instances:
+    backendA:
+      baseConfig: default
+    backendB:
+      registerHealthIndicator: true
+      slidingWindowSize: 10
+      minimumNumberOfCalls: 10
+      permittedNumberOfCallsInHalfOpenState: 3
+      waitDurationInOpenState: 1s
+      failureRateThreshold: 50
+      eventConsumerBufferSize: 10
+      slidingWindowType: TIME_BASED
+      #recordFailurePredicate: io.github.robwin.exception.RecordFailurePredicate
+
+#resilience4j.timelimiter:
+#  time-limiter-aspect-order: 398
+#  configs:
+#    default:
+#      timeoutDuration: 1s
+#      cancelRunningFuture: false
+#  instances:
+#    backendB:
+#      timeoutDuration: 250ms      

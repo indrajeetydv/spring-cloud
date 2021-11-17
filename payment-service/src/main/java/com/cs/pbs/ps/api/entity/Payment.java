@@ -17,9 +17,9 @@ import lombok.NoArgsConstructor;
 public class Payment {
 	@Id
     @GeneratedValue
-    private int paymentId;
+    private Integer paymentId;
     private String paymentStatus;
     private String transactionId;
-    private int orderId;
-    private double amount;
+    private Integer orderId;
+    private Double amount;
 }	
